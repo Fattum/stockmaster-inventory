@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockMaster - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/tailwind-config.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-background text-on-surface flex min-h-screen">
+
+  <aside class="fixed left-0 top-0 h-full w-[260px] bg-surface-container-low border-r border-outline-variant flex flex-col py-lg z-50">
+    <div class="px-lg mb-xl">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center">
+          <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+        </div>
+        <div>
+          <h1 class="font-headline-sm text-headline-sm font-bold text-primary">StockMaster</h1>
+          <p class="font-body-sm text-body-sm text-secondary">Inventory &amp; Invoicing</p>
+        </div>
+      </div>
+    </div>
+    <nav id="sidebarNav" class="flex-1 space-y-1 px-md">
+      <a href="#" data-module="dashboard" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-secondary hover:bg-surface-container transition-colors cursor-pointer">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="font-label-md text-label-md">Dashboard</span>
+      </a>
+      <a href="#" data-module="products" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-secondary hover:bg-surface-container transition-colors cursor-pointer">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span class="font-label-md text-label-md">Produits</span>
+      </a>
+      <a href="#" data-module="customers" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-secondary hover:bg-surface-container transition-colors cursor-pointer">
+        <span class="material-symbols-outlined">groups</span>
+        <span class="font-label-md text-label-md">Clients</span>
+      </a>
+      <a href="#" data-module="invoices" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-secondary hover:bg-surface-container transition-colors cursor-pointer">
+        <span class="material-symbols-outlined">receipt_long</span>
+        <span class="font-label-md text-label-md">Factures</span>
+      </a>
+      <a href="#" data-module="users" class="nav-item admin-only flex items-center gap-3 px-4 py-3 rounded-lg text-secondary hover:bg-surface-container transition-colors cursor-pointer" style="display: none;">
+        <span class="material-symbols-outlined">person</span>
+        <span class="font-label-md text-label-md">Utilisateurs</span>
+      </a>
+    </nav>
+    <div class="mt-auto px-md">
+      <div class="px-4 py-2 mb-2">
+        <span id="roleBadge" class="px-3 py-1 bg-primary-container text-on-primary-container text-[10px] font-bold rounded-full uppercase tracking-wider"></span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="flex-1 ml-[260px] flex flex-col">
+    <header class="flex justify-between items-center h-16 px-lg w-full bg-surface border-b border-outline-variant shadow-sm sticky top-0 z-40">
+      <div class="flex items-center flex-1">
+        <h1 id="moduleTitle" class="font-headline-sm text-headline-sm text-on-surface">Dashboard</h1>
+      </div>
+      <div class="flex items-center gap-md">
+        <button id="refreshBtn" class="p-2 text-on-surface-variant hover:text-primary transition-colors active:scale-95" title="Rafraîchir">
+          <span class="material-symbols-outlined">refresh</span>
+        </button>
+        <div class="relative">
+          <button id="notificationsBtn" class="p-2 text-on-surface-variant hover:text-primary transition-colors active:scale-95" title="Alertes de stock">
+            <span class="material-symbols-outlined">notifications</span>
+            <span id="notificationsBadge" class="hidden absolute top-0 right-0 w-4 h-4 bg-error text-white text-[10px] font-bold rounded-full flex items-center justify-center">0</span>
+          </button>
+          <div id="notificationsDropdown" class="hidden absolute right-0 mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 overflow-hidden">
+            <div class="px-lg py-3 border-b border-outline-variant bg-surface-container-low/40">
+              <h4 class="font-label-md text-label-md text-on-surface">Alertes de stock</h4>
+            </div>
+            <div id="notificationsList" class="max-h-80 overflow-y-auto custom-scrollbar"></div>
+          </div>
+        </div>
+        <div class="h-8 w-[1px] bg-outline-variant"></div>
+        <div class="flex items-center gap-3">
+          <div class="text-right hidden sm:block">
+            <p id="userFullName" class="font-label-md text-label-md text-on-surface leading-none"></p>
+          </div>
+          <button id="logoutBtn" class="ml-2 px-4 py-2 bg-surface-container-highest text-on-surface-variant rounded-lg font-label-md text-label-md hover:text-primary active:scale-95 transition-all">
+            Déconnexion
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 p-lg max-w-container-max mx-auto w-full">
+      <div id="contentArea"></div>
+    </main>
+  </div>
+
+  <div id="modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm hidden">
+    <div class="relative w-full max-w-2xl mx-4 bg-surface-container-lowest rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="px-xl py-lg border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+        <h3 id="modalTitle" class="font-headline-sm text-headline-sm font-bold text-on-surface"></h3>
+        <button class="close p-2 hover:bg-surface-container rounded-full transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div id="modalBody" class="p-xl overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/customers.js"></script>
+  <script src="js/invoices.js"></script>
+  <script src="js/users.js"></script>
+</body>
+</html>
